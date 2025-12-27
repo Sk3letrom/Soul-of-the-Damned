@@ -9,4 +9,6 @@ Input::Input() {
     // action keys
     attack = KEY_K;
     sprint = KEY_LEFT_SHIFT;
+    heal = KEY_H;
+    pickup = KEY_E;
 }

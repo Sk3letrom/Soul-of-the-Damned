@@ -7,6 +7,8 @@ public:
 
     int jump, left, right;
     int attack, sprint;
+    int heal;
+    int pickup;
 };
 
 

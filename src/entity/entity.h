@@ -12,14 +12,15 @@ public:
     float acceleration;
     float maxSpeed;
     int health;
+    int maxHealth;
     float stamina;
     float maxStamina;
     float staminaRegenRate;
     float gravity;
 
     Entity();
-
-    virtual void Update(float delta, bool onFloor, bool damage, int damageAmount) = 0; // Pure virtual function for updating the entity
+                                                                   //floor is temporary, will be removed later
+    virtual void Update(float delta, bool damage, int damageAmount, Rectangle floor) = 0; // Pure virtual function for updating the entity
     virtual void Draw() = 0; // Pure virtual function for drawing the entity
 
 

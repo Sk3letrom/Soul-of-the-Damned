@@ -8,7 +8,7 @@
 class GamePlaying {
 public:
     void CameraFollowPlayer(Vector2 playerPos, Camera2D &camera);
-    void DrawGame( Player& player, Enemy& enemy, Weapon& sword, Rectangle& floor, float delta, bool onFloor);
+    void DrawGame( Player& player, Enemy& enemy, Weapon& sword, Rectangle& floor, float delta);
 };
 
 #endif

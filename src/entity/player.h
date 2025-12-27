@@ -1,6 +1,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include "entity.h"
+#include <vector>
+#include "combat/consumables.h"
 
 class Player : public Entity {
 
@@ -12,11 +14,15 @@ public:
     bool rolling;
     float dashImpulse;
 
+    bool onFloor;
+
     Rectangle rect;
 
     bool atacking;
 
-    void Update(float delta, bool onFloor, bool damage, int damageAmount) override;
+    void Update(float delta, bool damage, int damageAmount, Rectangle floor) override;
+    void UseConsumable(std::vector<Consumables>& healPotions);
+    void inventoryManagement(std::vector<Consumables>& healPotions);
     void Draw() override;
 
 private:

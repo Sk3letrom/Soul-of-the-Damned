@@ -13,14 +13,13 @@ void GamePlaying::CameraFollowPlayer(Vector2 playerPos, Camera2D &camera) {
     camera.zoom = 1.0f;
 }
 
-void GamePlaying::DrawGame( Player& player, Enemy& enemy, Weapon& sword, Rectangle& floor, float delta, bool onFloor) {
-    player.Draw();
+void GamePlaying::DrawGame( Player& player, Enemy& enemy, Weapon& sword, Rectangle& floor, float delta) {
     
     if (player.atacking) sword.atack(delta);
     
-    sword.Draw();
-
     DrawRectangleRec(floor, BROWN);
-    enemy.Update(delta, onFloor, false, 0);
+    
     enemy.Draw();
+    player.Draw();
+    sword.Draw();
 }

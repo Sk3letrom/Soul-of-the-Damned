@@ -6,7 +6,9 @@
 #include "ui/HUD.h"
 #include "ui/menu.h"
 #include "ui/playing.h"
+#include "combat/consumables.h"
 #include <iostream>
+#include <vector>
 
 bool DamagePlayer;
 
@@ -16,14 +18,9 @@ enum class GameState {
     PLAYING
 };
  // game logic update function
-void updateGame(Enemy& enemy, Player& player, Rectangle floor, bool& onFloor) { 
+void updateGame(Enemy& enemy, Player& player) {
+     // Check collision between enemy and player
     DamagePlayer = enemy.atack(enemy.rect, player.rect);
-    // Simple gravity
-    onFloor = CheckCollisionRecs(floor, player.rect);
-    if (onFloor) {
-        // Simple collision response: stop the player from falling through the floor
-        player.position.y = floor.y - player.height;
-    }
 }
 
 int main() {
@@ -36,17 +33,20 @@ int main() {
     SetTargetFPS(60);
 
 
-    // Initialize game objects
-    bool onFloor;
+    // ============ Initialize game objects ============
     Player player = Player();
-    Enemy enemy = Enemy();
+    Enemy enemy = Enemy(EnemyType::Normal);
+    enemy.setPlayer(&player); // Set player reference to avoid nullptr crash
     Camera2D camera = { 0 };
     HUD hud = HUD();
     GamePlaying gamePlaying = GamePlaying();
     Weapon sword = Weapon(WeaponType::SWORD, 5, 50.0f, 1.0f, "Basic Sword");
     Menu menu = Menu();
 
-    Rectangle floor = {0.0f, 550.0f, (float)screenWidth, (float)(screenHeight - 550)};
+    std::vector<Consumables> healPotions;
+    // ================================================
+
+    Rectangle floor = {0.0f, 550.0f, (float)(screenWidth + 1000), (float)(screenHeight - 550)};
     floor.y += 200.0f; // Adjust floor position
 
     while (!WindowShouldClose()) {
@@ -66,8 +66,15 @@ int main() {
                 menu.optionSelected = (menu.optionSelected + 1) % 2; // Alterna entre 0 e 1
             }
         } else if (currentState == GameState::PLAYING) {
-            updateGame(enemy, player, floor, onFloor);
-            player.Update(delta, onFloor, DamagePlayer, enemy.damageAmount);
+            updateGame(enemy, player);
+        
+            player.Update(delta, DamagePlayer, enemy.damageAmount, floor);
+            player.inventoryManagement(healPotions);
+            player.UseConsumable(healPotions);
+            
+            enemy.ChasePlayer(delta, player.position, DamagePlayer);
+            enemy.Update(delta, false, 0, floor);
+
             sword.Update(delta, player.position);
             gamePlaying.CameraFollowPlayer(player.position, camera);
         }else if (currentState == GameState::CONFIG) {
@@ -97,7 +104,7 @@ int main() {
             case GameState::PLAYING:
                 hud.Draw(player.health, (int)player.stamina); // Draw HUD
                 BeginMode2D(camera); //inicia o modo 2D com a câmera personalizada
-                gamePlaying.DrawGame(player, enemy, sword, floor, delta, onFloor);
+                gamePlaying.DrawGame(player, enemy, sword, floor, delta);
                 EndMode2D(); // finaliza o modo 2D
                 break;
             case GameState::CONFIG:
