@@ -3,6 +3,9 @@ build/
 cmake-build-*/
 out/
 
+# Game assets (keep large/binary data out of git)
+assets/
+
 # CMake
 CMakeLists.txt.user
 CMakeCache.txt
