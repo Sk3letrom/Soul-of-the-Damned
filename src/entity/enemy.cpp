@@ -154,3 +154,7 @@ void Enemy::ChasePlayer(float delta, Vector2 playerPosition, bool collidingWithP
 void Enemy::Draw() {
     DrawRectangleRec(rect, RED);
 }
+
+void Enemy::Animation() {
+    // Enemy animation logic can be implemented here
+}

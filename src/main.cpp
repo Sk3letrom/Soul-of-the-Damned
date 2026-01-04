@@ -23,6 +23,20 @@ void updateGame(Enemy& enemy, Player& player) {
     DamagePlayer = enemy.atack(enemy.rect, player.rect);
 }
 
+std::vector<Texture2D> LoadTextures() {
+    std::vector<Texture2D> playerTextures;
+    playerTextures.push_back(LoadTexture("../assets/resources/player/player_stop_128-Sheet.png"));
+    playerTextures.push_back(LoadTexture("../assets/resources/player/player_walking_right-Sheet.png"));
+
+    return playerTextures;
+}
+
+void UnloadTextures(std::vector<Texture2D>& textures) {
+    for (auto& texture : textures) {
+        UnloadTexture(texture);
+    }
+}
+
 int main() {
     int screenWidth = 1280;
     int screenHeight = 720;
@@ -32,9 +46,10 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Dark Souls 2D!");
     SetTargetFPS(60);
 
+    std::vector<Texture2D> playerTextures = LoadTextures();
 
     // ============ Initialize game objects ============
-    Player player = Player();
+    Player player = Player(playerTextures);
     Enemy enemy = Enemy(EnemyType::Normal);
     enemy.setPlayer(&player); // Set player reference to avoid nullptr crash
     Camera2D camera = { 0 };
@@ -123,6 +138,8 @@ int main() {
     EndDrawing(); // End Drawing
         // -----------------------------
     }
+
+    UnloadTextures(playerTextures); // Unload all loaded textures
 
     CloseWindow();
     return 0;

@@ -17,9 +17,12 @@ FetchContent_MakeAvailable(raylib)
 
 file(GLOB SOURCES "src/*.cpp" "src/entity/*.cpp" "src/core/*.cpp" "src/combat/*.cpp" "src/ui/*.cpp")
 
-add_executable(Soul_of_the_Damned
-    ${SOURCES}
-)
+# No Windows, em Release, criar executável GUI (sem console)
+if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_executable(Soul_of_the_Damned WIN32 ${SOURCES})
+else()
+    add_executable(Soul_of_the_Damned ${SOURCES})
+endif()
 
 target_include_directories(Soul_of_the_Damned PRIVATE src)
 

@@ -30,8 +30,10 @@ public:
     void setPlayer(Player* playerRef);
 
     bool atack(Rectangle player, Rectangle enemy);
+    
     void Update(float delta, bool damage, int damageAmount, Rectangle floor) override;
     void ChasePlayer(float delta, Vector2 playerPosition, bool collidingWithPlayer);
+    void Animation() override;
     void Draw() override;
 
 private:
