@@ -21,14 +21,15 @@ Player::Player(std::vector<Texture2D> textures) {
     maxStamina = 20;    
     staminaRegenRate = 2.0f;
     shiftDuration = 0.0f;
-    maxShiftDuration = 0.3f; // Maximum shift duration in seconds
-    dashImpulse = 8.0f;
+    maxShiftDuration = 0.5f; // Maximum shift duration in seconds
+    dashImpulse = 6.0f; // Dash speed multiplier
 
     rect = { position.x, position.y, width, height };
     
     spaceDuration = 0.0f;
     maxSpaceDuration = 0.07f;
     velY = 0.0f;
+    moveX = 0.0f;
     jumpForce = 900.0f; // pixels per second impulse
     gravity = 1500.0f; // pixels per second^2
     
@@ -44,6 +45,7 @@ Player::Player(std::vector<Texture2D> textures) {
 
 }
 void Player::Update(float delta, bool damage, int damageAmount, Rectangle floor) {
+ //======================== Animation State Management ========================
 
     int framesInTexture = 0; // Number of frames in the current texture
     if (std::fabs(speed) < 1.0f) {
@@ -56,6 +58,13 @@ void Player::Update(float delta, bool damage, int damageAmount, Rectangle floor)
         framesSpeed = 3.63f; // frames per second
         playerTexture = playerTextures[1]; // walking texture
         framesInTexture = 4; // walking has 4 frames (0-3)
+    }
+
+    if (rolling) {
+        animationState = 2; // rolling
+        framesSpeed = 14.0f; // frames per second
+        playerTexture = playerTextures[2]; // rolling texture
+        framesInTexture = 7; // rolling has 7 frames (0-6)
     }
 
     frameInImage = framesInTexture - 1; // max frame index
@@ -71,17 +80,21 @@ void Player::Update(float delta, bool damage, int damageAmount, Rectangle floor)
     currentFrameRec = { frameWidth * currentFrame, 0.0f, frameWidth, static_cast<float>(playerTexture.height) };
 
     Animation();
-
+ //=========================================================================
+ // ======================== Movement and Physics ========================
     Input input = Input();
     // ============ Input ============
     // ============ Movement ============
     if (IsKeyDown(input.left)) {
         speed -= acceleration * delta;
+        moveX = -1.0f;
     }
     else if (IsKeyDown(input.right)) {
         speed += acceleration * delta;
+        moveX = 1.0f;
     } else {
         speed *= 0.9f; // Friction
+        moveX = 0.0f;
     }
     
     // ================== Gravity and Vertical Movement ==================
@@ -112,22 +125,26 @@ void Player::Update(float delta, bool damage, int damageAmount, Rectangle floor)
     if (speed > maxSpeed) speed = maxSpeed;
     if (speed < -maxSpeed) speed = -maxSpeed;
     
-    // Gerenciar duração do shift
-    if (IsKeyDown(input.sprint) && shiftDuration > 0.0f && stamina >= 5 && onFloor) {
-        // Aplicar velocidade aumentada enquanto shift está ativo
-        position.x += speed * delta * dashImpulse;
-        shiftDuration -= delta; // Decrementar duração
-        if (shiftDuration < 0.0f) {
-            shiftDuration = 0.0f;
-            rolling = false; // Terminar shift quando a duração acabar
-        }
-    } else if (IsKeyPressed(input.sprint) && stamina >= 5 && onFloor) {
-        // Iniciar shift quando a tecla é pressionada
+    // Gerenciar duração do shift (dash com impulso bruto)
+    if (IsKeyPressed(input.sprint) && stamina >= 5 && onFloor && moveX != 0.0f) {
+        // Iniciar dash quando a tecla é pressionada
         stamina -= 5; // reduce stamina
         rolling = true;
         shiftDuration = maxShiftDuration;
+        // Aplicar impulso inicial do dash
+        position.x += dashImpulse * 0.05f; // impulso imediato.
+    }
+    
+    // Continuar aplicando velocidade durante o dash
+    if (shiftDuration > 0.0f) {
+        position.x += speed * delta * dashImpulse;
+        shiftDuration -= delta; // Decrementar duração
+        if (shiftDuration <= 0.0f) {
+            shiftDuration = 0.0f;
+            rolling = false; // Terminar dash quando a duração acabar
+        }
     } else {
-        // Update position based on speed
+        // Update position based on speed normal
         position.x += speed * delta;
     }
 

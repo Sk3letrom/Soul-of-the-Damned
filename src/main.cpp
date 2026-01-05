@@ -6,6 +6,7 @@
 #include "ui/HUD.h"
 #include "ui/menu.h"
 #include "ui/playing.h"
+#include "ui/paused.h"
 #include "combat/consumables.h"
 #include <iostream>
 #include <vector>
@@ -15,7 +16,8 @@ bool DamagePlayer;
 enum class GameState {
     CONFIG,
     MENU,
-    PLAYING
+    PLAYING,
+    PAUSED
 };
  // game logic update function
 void updateGame(Enemy& enemy, Player& player) {
@@ -27,6 +29,7 @@ std::vector<Texture2D> LoadTextures() {
     std::vector<Texture2D> playerTextures;
     playerTextures.push_back(LoadTexture("../assets/resources/player/player_stop_128-Sheet.png"));
     playerTextures.push_back(LoadTexture("../assets/resources/player/player_walking_right-Sheet.png"));
+    playerTextures.push_back(LoadTexture("../assets/resources/player/player_roll-Sheet.png"));
 
     return playerTextures;
 }
@@ -46,6 +49,8 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Dark Souls 2D!");
     SetTargetFPS(60);
 
+    SetExitKey(KEY_NULL); // Disable default exit key (ESC)
+
     std::vector<Texture2D> playerTextures = LoadTextures();
 
     // ============ Initialize game objects ============
@@ -57,6 +62,7 @@ int main() {
     GamePlaying gamePlaying = GamePlaying();
     Weapon sword = Weapon(WeaponType::SWORD, 5, 50.0f, 1.0f, "Basic Sword");
     Menu menu = Menu();
+    Paused paused = Paused();
 
     std::vector<Consumables> healPotions;
     // ================================================
@@ -70,7 +76,8 @@ int main() {
         
  
         // -------------------- UPDATE --------------------
-        if (currentState == GameState::MENU) {
+        switch (currentState) {
+        case GameState::MENU:
             menu.UpdateMenu(delta);
             if (IsKeyPressed(KEY_ENTER) && menu.optionSelected == 0) {
                 currentState = GameState::PLAYING;
@@ -80,7 +87,9 @@ int main() {
             if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)) {
                 menu.optionSelected = (menu.optionSelected + 1) % 2; // Alterna entre 0 e 1
             }
-        } else if (currentState == GameState::PLAYING) {
+           
+            break;
+        case GameState::PLAYING:
             updateGame(enemy, player);
         
             player.Update(delta, DamagePlayer, enemy.damageAmount, floor);
@@ -92,7 +101,12 @@ int main() {
 
             sword.Update(delta, player.position);
             gamePlaying.CameraFollowPlayer(player.position, camera);
-        }else if (currentState == GameState::CONFIG) {
+            
+            if (IsKeyPressed(KEY_ESCAPE)) {
+                currentState = GameState::PAUSED;
+            }
+            break;
+        case GameState::CONFIG:
             if (IsKeyPressed(KEY_BACKSPACE)) {
                 currentState = GameState::MENU;
             }
@@ -105,6 +119,15 @@ int main() {
                 ToggleFullscreen();
                 SetWindowSize(screenWidth, screenHeight);
             }
+            
+            break;
+        case GameState::PAUSED:
+            paused.UpdatePaused(delta);
+        
+            if (IsKeyPressed(KEY_ESCAPE)) {
+                currentState = GameState::PLAYING;
+            }
+            break;
         }
         // -------------------- DRAWING --------------------
     BeginDrawing(); // Start Drawing
@@ -124,6 +147,9 @@ int main() {
                 break;
             case GameState::CONFIG:
                 menu.DrawConfigMenu();
+                break;
+            case GameState::PAUSED:
+                paused.DrawPaused();
                 break;
         }
 

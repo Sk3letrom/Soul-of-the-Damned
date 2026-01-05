@@ -41,6 +41,7 @@ private:
     float maxSpaceDuration;
     // Vertical physics
     float velY;
+    float moveX;
     float jumpForce;
 };
 
